@@ -614,7 +614,10 @@ $(LSR)/userprintf_r.o:     $(LR)/userprintf_r.c
 $(LSR)/userprintf_rbox_r.o:     $(LR)/userprintf_rbox_r.c
 	$(CC) -c $(CC_OPTS1) -o $@ $<
 
-lib/libqhullstatic.a: $(LIBQHULLS_RBOX_OBJS)
+lib bin:
+	mkdir $@
+
+lib/libqhullstatic.a: $(LIBQHULLS_RBOX_OBJS) | lib
 	@echo ==========================================
 	@echo ==== If 'ar' fails, try 'make qhullx' ====
 	@echo ==========================================
@@ -622,47 +625,47 @@ lib/libqhullstatic.a: $(LIBQHULLS_RBOX_OBJS)
 	#If 'ar -rs' fails try using 'ar -s' with 'ranlib'
 	#ranlib $@
 
-lib/libqhullstatic_r.a: $(LIBQHULLSR_RBOX_OBJS)
+lib/libqhullstatic_r.a: $(LIBQHULLSR_RBOX_OBJS) | lib
 	ar -rs $@ $^
 	#ranlib $@
 
-# Do not create libqhullcpp as a shared library.  Qhull C++ classes may change layout and size. 
-lib/libqhullcpp.a: $(LIBQHULLCPP_OBJS)
+# Do not create libqhullcpp as a shared library.  Qhull C++ classes may change layout and size.
+lib/libqhullcpp.a: $(LIBQHULLCPP_OBJS) | lib
 	ar -rs $@ $^
 	#ranlib $@
 
-lib/libqhull_r.$(SO): $(LIBQHULLSR_RBOX_OBJS)
+lib/libqhull_r.$(SO): $(LIBQHULLSR_RBOX_OBJS) | lib
 	$(CC) -shared -o $@ $(CC_OPTS3) $^
 	cd lib && ln -f -s libqhull_r.$(SO) libqhull_r.so
 
 # don't use ../qconvex.	 Does not work on Red Hat Linux
-bin/qconvex: src/qconvex/qconvex.o lib/libqhullstatic.a
+bin/qconvex: src/qconvex/qconvex.o lib/libqhullstatic.a | bin
 	$(CC) -o $@ $< $(CC_OPTS2) -Llib -lqhullstatic -lm
 
-bin/qdelaunay: src/qdelaunay/qdelaun.o lib/libqhullstatic.a
+bin/qdelaunay: src/qdelaunay/qdelaun.o lib/libqhullstatic.a | bin
 	$(CC) -o $@ $< $(CC_OPTS2) -Llib -lqhullstatic -lm
 
-bin/qhalf: src/qhalf/qhalf.o lib/libqhullstatic.a
+bin/qhalf: src/qhalf/qhalf.o lib/libqhullstatic.a | bin
 	$(CC) -o $@ $< $(CC_OPTS2) -Llib -lqhullstatic -lm
 
-bin/qvoronoi: src/qvoronoi/qvoronoi.o lib/libqhullstatic.a
+bin/qvoronoi: src/qvoronoi/qvoronoi.o lib/libqhullstatic.a | bin
 	$(CC) -o $@ $< $(CC_OPTS2) -Llib -lqhullstatic -lm
 
-bin/qhull: src/qhull/unix_r.o lib/libqhullstatic_r.a
+bin/qhull: src/qhull/unix_r.o lib/libqhullstatic_r.a | bin
 	$(CC) -o $@ $< $(CC_OPTS2) -Llib -lqhullstatic_r -lm
 	-chmod +x eg/q_test eg/q_eg eg/q_egtest
 
-bin/rbox: src/rbox/rbox.o lib/libqhullstatic.a
+bin/rbox: src/rbox/rbox.o lib/libqhullstatic.a | bin
 	$(CC) -o $@ $< $(CC_OPTS2) -Llib -lqhullstatic -lm
 
-bin/testqset: src/testqset/testqset.o src/libqhull/qset.o src/libqhull/mem.o src/libqhull/usermem.o
+bin/testqset: src/testqset/testqset.o src/libqhull/qset.o src/libqhull/mem.o src/libqhull/usermem.o | bin
 	$(CC) -o $@ $^ $(CC_OPTS2) -lm
 
-bin/testqset_r: src/testqset_r/testqset_r.o src/libqhull_r/qset_r.o src/libqhull_r/mem_r.o src/libqhull_r/usermem_r.o
+bin/testqset_r: src/testqset_r/testqset_r.o src/libqhull_r/qset_r.o src/libqhull_r/mem_r.o src/libqhull_r/usermem_r.o | bin
 	$(CC) -o $@ $^ $(CC_OPTS2) -lm
 
 # You may use  -lqhullstatic_r instead of -lqhull_r
-bin/user_eg: src/user_eg/user_eg_r.o lib/libqhull_r.$(SO)
+bin/user_eg: src/user_eg/user_eg_r.o lib/libqhull_r.$(SO) | bin
 	@echo -e '\n\n==================================================='
 	@echo -e '== If user_eg fails to link on MinGW or Cygwin, use'
 	@echo -e '==   "make SO=dll" and copy lib/libqhull_r.dll to bin/'
@@ -670,13 +673,13 @@ bin/user_eg: src/user_eg/user_eg_r.o lib/libqhull_r.$(SO)
 	@echo -e '===================================================\n'
 	$(CC) -o $@ $< $(CC_OPTS1) $(CC_OPTS3) -Llib -lqhull_r -lm
 
-bin/user_eg2: src/user_eg2/user_eg2_r.o lib/libqhullstatic_r.a
+bin/user_eg2: src/user_eg2/user_eg2_r.o lib/libqhullstatic_r.a | bin
 	@echo -e '\n\n==================================================='
 	@echo -e '== user_eg2 links to  qhullstatic_r.  It may use libqhull_r instead.'
 	@echo -e '===================================================\n'
 	$(CC) -o $@ $< $(CC_OPTS2) -Llib -lqhullstatic_r -lm
 
-bin/user_eg3: src/user_eg3/user_eg3_r.o lib/libqhullstatic_r.a lib/libqhullcpp.a
+bin/user_eg3: src/user_eg3/user_eg3_r.o lib/libqhullstatic_r.a lib/libqhullcpp.a | bin
 	$(CXX) -o $@ $< $(CXX_OPTS2) -Llib -lqhullcpp -lqhullstatic_r -lm
 
 # end of Makefile
